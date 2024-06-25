@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
 
+const List<String> operatorList = <String>['+', '-', '%'];
+
 class Calculator extends StatefulWidget {
   const Calculator({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
@@ -22,12 +15,28 @@ class _CalculatorState extends State<Calculator> {
   int _counter = 0;
   int _increment = 2;
   int _numberOnClicks = 0;
+  String _dropdownValue = operatorList.first;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter+=_increment;
-      _numberOnClicks++;
-    });
+  int calcul() {
+    if(_increment == 0) {
+      return _counter;
+    }
+    if(_dropdownValue == '+') {
+      return _counter+_increment;
+    } else if (_dropdownValue == '-') {
+      return _counter-_increment;
+    } else {
+      return _counter ~/ _increment;
+    }
+  }
+
+  void _incrementCounter(isTrue) {
+    if (isTrue) {
+      setState(() {
+        _counter=calcul();
+        _numberOnClicks++;
+      });
+    }
   }
 
    void setIncrement(value) async {
@@ -38,13 +47,6 @@ class _CalculatorState extends State<Calculator> {
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    final int total = _counter + _increment;
     String newString = 'Vous avez cliqué $_numberOnClicks fois';
 
     Widget w() {
@@ -61,9 +63,6 @@ class _CalculatorState extends State<Calculator> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
@@ -75,6 +74,28 @@ class _CalculatorState extends State<Calculator> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            DropdownButton<String>(
+              value: _dropdownValue,
+              // initialSelection: operatorList.first,
+              items: operatorList.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _dropdownValue = newValue!;
+                });
+              },
+              hint: const Text(
+                "Choose a Car Model",
+                style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600),
+              ),
+            ),
             TextFormField(
               decoration: const InputDecoration(labelText: "Enter your number"),
               keyboardType: TextInputType.number,
@@ -85,10 +106,13 @@ class _CalculatorState extends State<Calculator> {
                     builder: (BuildContext context) {
                       return const AlertDialog(
                         title: Text('Nope'),
-                        content: Text('Vous ne pouvez pas incrémenter par zéro'),
+                        content: Text('Vous ne pouvez pas calculer par zéro'),
                       );
                     },
                   );
+                } else if (value == '' || value == null) {
+                    setIncrement('0');
+                  return;
                 } else {
                   setIncrement(value);
                 }
@@ -99,26 +123,28 @@ class _CalculatorState extends State<Calculator> {
               '',
             ),
             Text(
-              '$_counter + $_increment',
+              '$_counter $_dropdownValue $_increment',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const Text(
               '',
             ),
             Text(
-              '$total',
+              '${calcul()}',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-            onPressed: _incrementCounter,
+            onPressed: () => _incrementCounter(true),
             tooltip: 'Increment',
-            // isExtended: true,
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: <Widget>[const Icon(Icons.add), Text('$_increment')]
+              children: <Widget>[
+                // const Icon(Icons.add),
+                Text('$_dropdownValue $_increment')
+              ]
             )
           ),
     );
